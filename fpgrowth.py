@@ -31,7 +31,11 @@ for transaction in D:
             # current = current.children.index(item)
             current.count += 1
 
-print(root)
+print(root) # idk how to make __str__ work inside lists
+
+"""
+Creates a pyplot tree visualization
+"""
 def plot_tree(node, x, y, width, level):
     if node:
         plt.text(x, y, f"{node.prefix}\nCount: {node.count}", ha='center', va='center', bbox=dict(facecolor='white'))

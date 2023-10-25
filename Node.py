@@ -4,9 +4,12 @@ class Node:
         self.prefix = prefix
         self.children = children
         return
-    def __str__(self):
+    def __repr__(self) -> str:
         return f"{self.prefix} --> {self.children}"
     
+    """
+    Checks if the item (node data/prefix) is present inside children
+    """
     def isItemChild(self, item):
         if len(self.children) == 0:
             return False
