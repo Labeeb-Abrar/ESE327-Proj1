@@ -4,6 +4,7 @@ class Node:
         self.data = data
         self.children = children
         self.parent = parent
+        self.header_link = None
         return
     def __repr__(self) -> str:
         return f"{self.data}:{self.count} --> {self.children}"
