@@ -2,6 +2,19 @@ import matplotlib.pyplot as plt
 from collections import Counter
 from Node import Node
 
+#   returns a frequent item dictionary
+def get_frequency_dict_from_transaction(transactions):
+    freq = {}
+    for t in transactions:
+        for item in t:
+            if item not in freq:
+                freq[item] = 1
+            else:
+                freq[item] += 1
+    return freq
+
+
+
 # # Sample 2D array
 # data = [
 #     ["A", "B", "F", "G"],
@@ -33,12 +46,12 @@ generates sorted dictionary with support counts of given database
 """
 def generate_frequency_dict(data, min_support):
     flat_data = [item for sublist in data for item in sublist]
-
     # Calculate the support counts
     item_counts = Counter(flat_data)
+    print(type(item_counts))
     # Collect frequent items (F)
     frequent_items = {item: count for item, count in item_counts.items() if count >= min_support}
-
+    print(type(frequent_items))        
     # Sort F by support count in descending order to get L
     sorted_frequent_items = sorted(frequent_items.items(), key=lambda x: x[1], reverse=True)
     sorted_frequent_items_dict = dict(sorted_frequent_items)
@@ -66,6 +79,31 @@ def generate_frequency_dict(data, min_support):
 # I2, with the existing path for T100. Therefore, we instead increment the count of the I2
 # node by 1, and create a new node, hI4: 1i, which is linked as a child to hI2: 2i.
 
+
+# when creating the first branch of the tree, we first need to make sure our list of transactions is sorted based on the support count.
+# This function returns a tree (contained inside a node), the return var type is a Node class.
+# Parameters: "transactions" is the transaction database D
+#             "root" is the Node passed to create the Tree
+#             "min_support" is the minimum support used to prune the transaction database based on support count
+def create_tree(transactions, root, min_support):
+    sorted_frequent_items_dict = get_frequency_dict_from_transaction(transactions) # generate_frequency_dict(data=transactions, min_support=min_support)
+
+    for transaction in transactions:
+        transaction = sorted(transaction, key=lambda x: sorted_frequent_items_dict[x], reverse=True) #Sort our transaction list based on support counts
+        current = root
+        print(transaction)
+        for item in transaction:
+            if sorted_frequent_items_dict[item] >= min_support: # min support threshold
+                if item in current.children:
+                    #print("found")
+                    current.children[item].count += 1
+                    current = current.children[item]
+                else:
+                    current.children.append(Node(data=item, children=[], count=1, parent=current))
+                    current = current.children[-1]
+       # current = root
+    return root
+
 transactions=[
 
     ["C", "B", "E", "G"],
@@ -76,32 +114,12 @@ transactions=[
 ]
 
 root = Node(data="null", children=[], count=0, parent=None)
+frequency = get_frequency_dict_from_transaction(transactions)
+print(frequency)
+sorted_f = dict(sorted(frequency.items(), key=lambda x: x[1], reverse=True))
+print(sorted_f)
 
-# when creating the first branch of the tree, we first need to make sure our list of transactions is sorted based on the support count.
-# This function returns a tree (contained inside a node), the return var type is a Node class.
-# Parameters: "transactions" is the transaction database D
-#             "root" is the Node passed to create the Tree
-#             "min_support" is the minimum support used to prune the transaction database based on support count
-def create_tree(transactions, root, min_support):
-    sorted_frequent_items_dict = generate_frequency_dict(data=transactions, min_support=min_support)
-
-    for transaction in transactions:
-        transaction = sorted(transaction, key=lambda x: sorted_frequent_items_dict[x], reverse=True) #Sort our transaction list based on support counts
-        current = root
-        print(transaction)
-        for item in transaction:
-            #print(item)
-            if item in current.children:
-                #print("found")
-                current.children[item].count += 1
-                current = current.children[item]
-            else:
-                current.children.append(Node(data=item, children=[], count=1, parent=current))
-                current = current.children[-1]
-       # current = root
-    return root
-
-min_support = 0
+min_support = 2
 root = create_tree(transactions=transactions, root=root, min_support=min_support)
 print(root)
 # #   Remove elements not in the sorted frequent list
