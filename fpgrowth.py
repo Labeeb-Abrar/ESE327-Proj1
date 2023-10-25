@@ -1,38 +1,93 @@
 from Node import Node
 import matplotlib.pyplot as plt
 
-# Sample Database
-# ('B', 7), ('G', 4), ('C', 3), ('D', 2), ('E', 2)
-# B G C D E A F
-# each set is a transaction
-D = [
-    ["B", "E", "A", "F"],
-    ["C", "E", "A"]
-    # ["C", "E", "F"],
-    # ["G", "D", "E", "A"],
-    # ["G", "C", "E"]
+from collections import Counter
+from Node import Node
+
+# Sample 2D array
+data = [
+    ["A", "B", "F", "G"],
+    ["D", "C", "B", "B"],
+    ["B", "C", "B", "G"],
+    ["C", "B", "G", "G"],
+    ["D", "E", "E", "B"]
 ]
-tree_depth = 3  # for tree plot
-"""
-FP Growth algorithm:
-- for each transaction:
-    - append lol
-"""
-root = Node("null")
 
-for transaction in D:
-    current = root
-    for item in transaction:
-        if not current.isItemChild(item):
-            node = Node(item)
-            current.children.append(node)
-            current = node
-        else:
-            # current = current.children.index(item)
-            current.count += 1
+# Flatten the 2D array to get a list of items
+flat_data = [item for sublist in data for item in sublist]
 
-print(root) # idk how to make __str__ work inside lists
+# Set a minimum support count threshold
+min_support = 2
 
+# Calculate the support counts
+item_counts = Counter(flat_data)
+# Collect frequent items (F)
+frequent_items = {item: count for item, count in item_counts.items() if count >= min_support}
+
+# Sort F by support count in descending order to get L
+sorted_frequent_items = sorted(frequent_items.items(), key=lambda x: x[1], reverse=True)
+sorted_frequent_items_dict = dict(sorted_frequent_items) 
+#print(sorted_frequent_items_dict)
+# Print the list of frequent items L and their support counts
+# for item, count in sorted_frequent_items:
+#     print(f"Item: {item}, Support Count: {count}")
+#print(type(sorted_frequent_items_dict))
+
+#create nodes for all of the items that we have in out dataset.
+#Build a tree based off of the transactions dataset.
+#If there are any nodes below or support count, remove the node/ that item all together. (from the dataset)
+#An FP-tree is then constructed as follows. First, create the root of the tree, labeled
+# with “null.” Scan database D a second time. The items in each transaction are processed
+# in L order (i.e., sorted according to descending support count), and a branch is created
+# for each transaction. For example, the scan of the first transaction, “T100: I1, I2, I5,”
+# which contains three items (I2, I1, I5 in L order), leads to the construction of the first
+# branch of the tree with three nodes, hI2: 1i, hI1: 1i, and hI5: 1i, where I2 is linked as a
+# child to the root, I1 is linked to I2, and I5 is linked to I1. The second transaction, T200,
+# contains the items I2 and I4 in L order, which would result in a branch where I2 is linked
+# to the root and I4 is linked to I2. However, this branch would share a common prefix,
+# I2, with the existing path for T100. Therefore, we instead increment the count of the I2
+# node by 1, and create a new node, hI4: 1i, which is linked as a child to hI2: 2i.
+
+transactions=[
+
+    ["C", "B", "E", "G"],
+    ["D", "C", "B"],
+
+]
+
+root = Node(data="null", children=[], count=0, parent=None)
+
+# when creating the first branch of the tree, we first need to make sure our list of transactions is sorted based on the support count.
+
+def create_tree(transactions, root):
+    for transaction in transactions:
+        transaction = sorted(transaction, key=lambda x: sorted_frequent_items_dict[x], reverse=True) #Sort our transaction list based on support counts
+        current = root
+        #print(transaction)
+        for item in transaction:
+            #print(item)
+            if item in current.children:
+                #print("found")
+                current.children[item].count += 1
+                current = current.children[item]
+            else:
+                current.children.append(Node(data=item, children=[], count=1, parent=current))
+                current = current.children[-1]
+       # current = root
+    return root
+
+print(create_tree(transactions, root))
+#   Remove elements not in the sorted frequent list
+for i in data:
+    for j in i:
+        deleteFlag = True
+        for item, count in sorted_frequent_items:
+            if item == j:
+                deleteFlag = False
+        if deleteFlag:
+            i.remove(j)
+
+print(data)
 """
 Creates a pyplot tree visualization
 """
