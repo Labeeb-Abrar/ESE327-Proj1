@@ -19,3 +19,8 @@ class Node:
             if node.data == item:
                 return True
         return False
+    def getChild(self, item):
+        for node in self.children:
+            if node.data == item:
+                return node
+        return None

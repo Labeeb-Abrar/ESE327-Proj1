@@ -94,10 +94,12 @@ def create_tree(transactions, root, min_support):
         print(transaction)
         for item in transaction:
             if sorted_frequent_items_dict[item] >= min_support: # min support threshold
-                if item in current.children:
+                print(f"current's chlidren: {current.children}")
+                if current.isItemChild(item):
                     #print("found")
-                    current.children[item].count += 1
-                    current = current.children[item]
+                    child = current.getChild(item)   # find index of the item
+                    child.count += 1
+                    current = child
                 else:
                     current.children.append(Node(data=item, children=[], count=1, parent=current))
                     current = current.children[-1]
@@ -112,13 +114,11 @@ transactions=[
     ["D", "E", "F"],
     ["G", "C", "E", "F"],
 ]
-
 root = Node(data="null", children=[], count=0, parent=None)
 frequency = get_frequency_dict_from_transaction(transactions)
 print(frequency)
 sorted_f = dict(sorted(frequency.items(), key=lambda x: x[1], reverse=True))
 print(sorted_f)
-
 min_support = 2
 root = create_tree(transactions=transactions, root=root, min_support=min_support)
 print(root)
@@ -146,7 +146,7 @@ def plot_tree(node, x, y, width, level):
                 y_next = y - 1.5  # Adjust vertical separation as needed
                 plt.plot([x, x_next], [y, y_next], color='black', lw=2)
                 plot_tree(child, x_next, y_next, dx, level - 1)
-plt.figure(figsize=(10, 6))
+plt.figure(figsize=(8, 4))
 plt.axis('off')
 plot_tree(root, x=0, y=0, width=10, level=4)
 plt.show()
