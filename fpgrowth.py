@@ -3,19 +3,6 @@ from collections import Counter
 from Node import Node
 
 #create nodes for all of the items that we have in out dataset.
-#Build a tree based off of the transactions dataset.
-#If there are any nodes below or support count, remove the node/ that item all together. (from the dataset)
-#An FP-tree is then constructed as follows. First, create the root of the tree, labeled
-# with “null.” Scan database D a second time. The items in each transaction are processed
-# in L order (i.e., sorted according to descending support count), and a branch is created
-# for each transaction. For example, the scan of the first transaction, “T100: I1, I2, I5,”
-# which contains three items (I2, I1, I5 in L order), leads to the construction of the first
-# branch of the tree with three nodes, hI2: 1i, hI1: 1i, and hI5: 1i, where I2 is linked as a
-# child to the root, I1 is linked to I2, and I5 is linked to I1. The second transaction, T200,
-# contains the items I2 and I4 in L order, which would result in a branch where I2 is linked
-# to the root and I4 is linked to I2. However, this branch would share a common prefix,
-# I2, with the existing path for T100. Therefore, we instead increment the count of the I2
-# node by 1, and create a new node, hI4: 1i, which is linked as a child to hI2: 2i.
 
 
 # when creating the first branch of the tree, we first need to make sure our list of transactions is sorted based on the support count.
@@ -77,12 +64,19 @@ class FPTree:
                 else:
                     freq[item] += 1
         return freq
+    def get_frequency_dict_from_single_transaction(self, transaction):
+        freq = {}
+        for item in transaction:
+            if item not in freq:
+                freq[item] = 1
+            else:
+                freq[item] += 1
+        return freq
     
     def add_transaction(self, transaction):
     # Sort transaction items based on frequency
-
-     sorted_frequent_items_dict = self.get_frequency_dict_from_transaction(transactions)
-     sorted_transaction = sorted(transaction, key=lambda x: sorted_frequent_items_dict[x], reverse=True)
+     sorted_frequent_item_dict = self.get_frequency_dict_from_single_transaction(transactions)
+     sorted_transaction = sorted(transaction, key=lambda x: sorted_frequent_item_dict[x], reverse=True)
     # Add transaction to the tree 
      current = self.root
      for item in sorted_transaction:
@@ -113,7 +107,35 @@ class FPTree:
        tree.add_transaction(path) 
      return tree
 
+    def is_single_path(self):
+     """Check if tree contains only a single path"""
+     if len(self.getRoot().children) == 1:
+      return self.had_single_path(self.getRoot())
+     else:
+      return False
 
+    def had_single_path(self, node:Node):
+     """Recursively check if node has only one child"""
+     if len(node.children) == 1:
+       return self.had_single_path(node.children[0])
+     elif len(node.children) == 0: 
+       return True
+     else:
+       return False
+     
+    def get_single_path(self):
+     if not self.is_single_path():
+        return None
+
+     # Follow nodes until reach leaf 
+     path = []
+     node = self.getRoot()
+     while node:
+        path.append(node.data)
+        node = node.children[0]
+
+     return path
+     
     def generate_combinations(self, path, suffix):
      patterns = []
      for i in range(len(path)):
@@ -128,7 +150,7 @@ class FPTree:
        cond_tree = self.build_conditional_tree(prefix_paths)
 
        if cond_tree.is_single_path():  
-          cond_patterns = self.generate_combinations(cond_tree.single_path, [item] + suffix)
+          cond_patterns = self.generate_combinations(cond_tree.get_single_path, [item] + suffix)
        else:
           cond_patterns = cond_tree.mine_tree([item] + suffix)
       
