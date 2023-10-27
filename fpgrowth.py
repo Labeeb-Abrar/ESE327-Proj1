@@ -2,68 +2,6 @@ import matplotlib.pyplot as plt
 from collections import Counter
 from Node import Node
 
-#   returns a frequent item dictionary
-def get_frequency_dict_from_transaction(transactions):
-    freq = {}
-    for t in transactions:
-        for item in t:
-            if item not in freq:
-                freq[item] = 1
-            else:
-                freq[item] += 1
-    return freq
-
-
-
-# # Sample 2D array
-# data = [
-#     ["A", "B", "F", "G"],
-#     ["D", "C", "B", "B"],
-#     ["B", "C", "B", "G"],
-#     ["C", "B", "G", "G"],
-#     ["D", "E", "E", "B"]
-# ]
-
-# # Flatten the 2D array to get a list of items
-# flat_data = [item for sublist in data for item in sublist]
-
-# # Set a minimum support count threshold
-# min_support = 2
-
-# # Calculate the support counts
-# item_counts = Counter(flat_data)
-# # Collect frequent items (F)
-# frequent_items = {item: count for item, count in item_counts.items() if count >= min_support}
-
-# # Sort F by support count in descending order to get L
-# sorted_frequent_items = sorted(frequent_items.items(), key=lambda x: x[1], reverse=True)
-# sorted_frequent_items_dict = dict(sorted_frequent_items)
-# print(sorted_frequent_items)
-# print(sorted_frequent_items_dict)
-
-"""
-generates sorted dictionary with support counts of given database
-"""
-def generate_frequency_dict(data, min_support):
-    flat_data = [item for sublist in data for item in sublist]
-    # Calculate the support counts
-    item_counts = Counter(flat_data)
-    print(type(item_counts))
-    # Collect frequent items (F)
-    frequent_items = {item: count for item, count in item_counts.items() if count >= min_support}
-    print(type(frequent_items))        
-    # Sort F by support count in descending order to get L
-    sorted_frequent_items = sorted(frequent_items.items(), key=lambda x: x[1], reverse=True)
-    sorted_frequent_items_dict = dict(sorted_frequent_items)
-    print(sorted_frequent_items)
-    print(sorted_frequent_items_dict)
-
-    return sorted_frequent_items_dict
-# Print the list of frequent items L and their support counts
-# for item, count in sorted_frequent_items:
-#     print(f"Item: {item}, Support Count: {count}")
-#print(type(sorted_frequent_items_dict))
-
 #create nodes for all of the items that we have in out dataset.
 #Build a tree based off of the transactions dataset.
 #If there are any nodes below or support count, remove the node/ that item all together. (from the dataset)
@@ -85,26 +23,59 @@ def generate_frequency_dict(data, min_support):
 # Parameters: "transactions" is the transaction database D
 #             "root" is the Node passed to create the Tree
 #             "min_support" is the minimum support used to prune the transaction database based on support count
-def create_tree(transactions, root, min_support):
-    sorted_frequent_items_dict = get_frequency_dict_from_transaction(transactions) # generate_frequency_dict(data=transactions, min_support=min_support)
+#   returns a frequent item dictionary
 
-    for transaction in transactions:
-        transaction = sorted(transaction, key=lambda x: sorted_frequent_items_dict[x], reverse=True) #Sort our transaction list based on support counts
-        current = root
-        print(transaction)
-        for item in transaction:
-            if sorted_frequent_items_dict[item] >= min_support: # min support threshold
-                print(f"current's chlidren: {current.children}")
-                if current.isItemChild(item):
-                    #print("found")
-                    child = current.getChild(item)   # find index of the item
-                    child.count += 1
-                    current = child
+class FPTree:
+    def __init__(self):
+        self.tree_root = Node()
+        self.header = {}    # create a dictionary that maps strings to linked lists, and the whole dictionary can be hashed and used as a key in another dict or set
+    
+    def getRoot(self):
+        return self.tree_root
+    
+    def getHeader(self):
+        return self.header
+    
+    #   add node to the header dict, this is the header list
+    def addHeaderNode(self, Node):
+        if Node.data is not None:
+            # this place should 
+            print("")
+        return
+
+    def create_tree(self, transactions, min_support):
+        sorted_frequent_items_dict = self.get_frequency_dict_from_transaction(transactions) # generate_frequency_dict(data=transactions, min_support=min_support)
+        root = self.tree_root
+        for transaction in transactions:
+            transaction = sorted(transaction, key=lambda x: sorted_frequent_items_dict[x], reverse=True) #Sort our transaction list based on support counts
+            current = root
+            print(transaction)
+            #adding transaction to tree
+            for item in transaction:
+                if sorted_frequent_items_dict[item] >= min_support: # min support threshold
+                    if current.isItemChild(item):
+                        child = current.getChild(item)   # find index of the item
+                        child.count += 1
+                        current = child
+                    else:
+                        current.children.append(Node(data=item, children=[], count=1, parent=current))
+                        self.addHeaderNode(current) # for every new node created, it should be hashed in to the header
+                        current = current.children[-1]
+        return
+    #   helper function
+    def get_frequency_dict_from_transaction(self, transactions):
+        freq = {}
+        for t in transactions:
+            for item in t:
+                if item not in freq:
+                    freq[item] = 1
                 else:
-                    current.children.append(Node(data=item, children=[], count=1, parent=current))
-                    current = current.children[-1]
-       # current = root
-    return root
+                    freq[item] += 1
+        return freq
+    
+    #   string output
+    def __repr__(self) -> str:
+        return f"{self.tree_root}"
 
 transactions=[
 
@@ -114,25 +85,12 @@ transactions=[
     ["D", "E", "F"],
     ["G", "C", "E", "F"],
 ]
-root = Node(data="null", children=[], count=0, parent=None)
-frequency = get_frequency_dict_from_transaction(transactions)
-print(frequency)
-sorted_f = dict(sorted(frequency.items(), key=lambda x: x[1], reverse=True))
-print(sorted_f)
-min_support = 2
-root = create_tree(transactions=transactions, root=root, min_support=min_support)
-print(root)
-# #   Remove elements not in the sorted frequent list
-# for i in data:
-#     for j in i:
-#         deleteFlag = True
-#         for item, count in sorted_frequent_items:
-#             if item == j:
-#                 deleteFlag = False
-#         if deleteFlag:
-#             i.remove(j)
 
-# print(data)
+fptree = FPTree()
+min_support = 2
+fptree.create_tree(transactions=transactions, min_support=min_support)
+print(fptree)
+print(fptree.header)
 """
 Creates a pyplot tree visualization
 """
@@ -148,5 +106,5 @@ def plot_tree(node, x, y, width, level):
                 plot_tree(child, x_next, y_next, dx, level - 1)
 plt.figure(figsize=(8, 4))
 plt.axis('off')
-plot_tree(root, x=0, y=0, width=10, level=4)
+plot_tree(fptree.getRoot(), x=0, y=0, width=10, level=4)
 plt.show()

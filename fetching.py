@@ -1,24 +1,13 @@
 from ucimlrepo import fetch_ucirepo
 
-class Node:
-    def __init__(self, data, header):
-        self.data = data
-        self.header = header
-    def __str__(self):
-        return f"{self.data} --> {self.header}"
-
-def main():    
+def fetchData(id):    
     # fetch dataset 
-    car_evaluation = fetch_ucirepo(id=19)
+    evaluation = fetch_ucirepo(id=id)
+    x = evaluation.data.features.values.tolist()
+    y = evaluation.data.targets.values.tolist()
     
-    # data (as pandas dataframes) 
-    x = car_evaluation.data.features
-    y = car_evaluation.data.targets
-    
-    car_variables = car_evaluation.variables
-
-    # variable information 
-    print(car_variables) 
+    print(x)
+    print(y)
     pass
-if __name__ == '__main__':
-    main()
+
+fetchData(19)

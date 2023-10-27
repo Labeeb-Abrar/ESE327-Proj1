@@ -1,9 +1,10 @@
 class Node:
-    def __init__(self, data=None, count=0, children=[], parent=None) -> None:
+    def __init__(self, data=None, count=0, children=[], parent=None, header_link=None) -> None:
         self.count = count
         self.data = data
         self.children = children
         self.parent = parent
+        self.header_link=header_link
         return
     def __repr__(self) -> str:
         return f"{self.data}:{self.count} --> {self.children}"
