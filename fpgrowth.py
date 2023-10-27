@@ -39,7 +39,12 @@ class FPTree:
     #   add node to the header dict, this is the header list
     def addHeaderNode(self, Node):
         if Node.data is not None:
-            # this place should 
+            if Node.data not in self.header:
+                self.header[Node.data] = list()
+                self.header[Node.data].append(Node)
+            elif Node.data in self.header:
+                self.header[Node.data].append(Node)
+            
             print("")
         return
 
@@ -59,8 +64,8 @@ class FPTree:
                         current = child
                     else:
                         current.children.append(Node(data=item, children=[], count=1, parent=current))
-                        self.addHeaderNode(current) # for every new node created, it should be hashed in to the header
                         current = current.children[-1]
+                        self.addHeaderNode(current) # for every new node created, it should be hashed in to the header
         return
     #   helper function
     def get_frequency_dict_from_transaction(self, transactions):
@@ -91,6 +96,22 @@ min_support = 2
 fptree.create_tree(transactions=transactions, min_support=min_support)
 print(fptree)
 print(fptree.header)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 """
 Creates a pyplot tree visualization
 """
