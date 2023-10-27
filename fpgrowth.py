@@ -106,8 +106,8 @@ class FPTree:
     def build_conditional_tree(self, paths):
      tree = FPTree()
      for path in paths:
-       # treat each path as a transaction
-       tree.add_transaction(path) 
+       tree.add_transaction(path)
+       print(f"Conditional tree path: {path}")
      return tree
 
     def is_single_path(self):
@@ -144,6 +144,7 @@ class FPTree:
      for i in range(len(path)):
        pattern = path[i:] + suffix
        patterns.append(pattern)
+       print(patterns)
      return patterns
 
     def mine_tree(self, suffix=[]):
@@ -153,10 +154,13 @@ class FPTree:
        cond_tree = self.build_conditional_tree(prefix_paths)
 
        if cond_tree.is_single_path():  
-          cond_patterns = self.generate_combinations(cond_tree.get_single_path, [item] + suffix)
+          print("Single path conditional tree")
+          path = cond_tree.get_single_path()
+          cond_patterns = self.generate_combinations(path, [item] + suffix)
+         
        else:
+          print("Not single path conditional tree")
           cond_patterns = cond_tree.mine_tree([item] + suffix)
-      
        patterns.extend(cond_patterns)
      return patterns
     
@@ -181,8 +185,8 @@ fptree.create_tree(transactions=transactions, min_support=min_support)
 #print(fptree)
 #print(fptree.header.keys(), fptree.header.values())
 
-for k,v in fptree.header.items():
-   print(k,"=", len(v))
+# for k,v in fptree.header.items():
+#    print(k,"=", len(v))
 
 itemsets = fptree.mine_tree()
 print(itemsets)
