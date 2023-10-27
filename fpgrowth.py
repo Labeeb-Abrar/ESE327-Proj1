@@ -45,7 +45,7 @@ class FPTree:
             elif Node.data in self.header:
                 self.header[Node.data].append(Node)
             
-            print("")
+            print("self.header: ", self.header[Node.data])
         return
 
     def create_tree(self, transactions, min_support):
@@ -78,6 +78,65 @@ class FPTree:
                     freq[item] += 1
         return freq
     
+    def add_transaction(self, transaction):
+    # Sort transaction items based on frequency
+
+     sorted_frequent_items_dict = self.get_frequency_dict_from_transaction(transactions)
+     sorted_transaction = sorted(transaction, key=lambda x: sorted_frequent_items_dict[x], reverse=True)
+    # Add transaction to the tree 
+     current = self.root
+     for item in sorted_transaction:
+        if current.has_child(item):
+           child = current.get_child(item)
+           child.count += 1
+        else:
+           child = Node(item, 1) 
+           current.add_child(child)
+           self.add_header_node(child)
+
+        current = child
+    
+    def find_prefix_paths(self, item):
+     paths = []
+     for node in self.header[item]:
+        path = []
+        while node and node.parent:
+            path.append(node.data)
+            node = node.parent  
+        paths.append(path)
+        return paths
+
+    def build_conditional_tree(self, paths):
+     tree = FPTree()
+     for path in paths:
+       # treat each path as a transaction
+       tree.add_transaction(path) 
+     return tree
+
+
+    def generate_combinations(self, path, suffix):
+     patterns = []
+     for i in range(len(path)):
+       pattern = path[i:] + suffix
+       patterns.append(pattern)
+     return patterns
+
+    def mine_tree(self, suffix=[]):
+     patterns = []
+     for item in self.header:
+       prefix_paths = self.find_prefix_paths(item)
+       cond_tree = self.build_conditional_tree(prefix_paths)
+
+       if cond_tree.is_single_path():  
+          cond_patterns = self.generate_combinations(cond_tree.single_path, [item] + suffix)
+       else:
+          cond_patterns = cond_tree.mine_tree([item] + suffix)
+      
+       patterns.extend(cond_patterns)
+     return patterns
+    
+
+  
     #   string output
     def __repr__(self) -> str:
         return f"{self.tree_root}"
