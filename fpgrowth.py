@@ -32,7 +32,7 @@ class FPTree:
             elif Node.data in self.header:
                 self.header[Node.data].append(Node)
             
-            print("self.header: ", self.header[Node.data])
+           # print("self.header: ", self.header[Node.data])
         return
 
     def create_tree(self, transactions, min_support):
@@ -74,21 +74,24 @@ class FPTree:
         return freq
     
     def add_transaction(self, transaction):
-    # Sort transaction items based on frequency
-     sorted_frequent_item_dict = self.get_frequency_dict_from_single_transaction(transactions)
-     sorted_transaction = sorted(transaction, key=lambda x: sorted_frequent_item_dict[x], reverse=True)
-    # Add transaction to the tree 
-     current = self.root
-     for item in sorted_transaction:
-        if current.has_child(item):
-           child = current.get_child(item)
-           child.count += 1
-        else:
-           child = Node(item, 1) 
-           current.add_child(child)
-           self.add_header_node(child)
+        # Sort transaction items based on frequency
+        sorted_frequent_item_dict = self.get_frequency_dict_from_single_transaction(transaction)
+        sorted_transaction = sorted(transaction, key=lambda x: sorted_frequent_item_dict[x], reverse=True)
+        # Add transaction to the tree 
+        current_node = self.getRoot()
+        for item in sorted_transaction:
+            # If child exists, increment count
+            if current_node.isItemChild(item):
+                child = current_node.getChild(item)
+                child.count += 1
+            # Else create new child 
+            else:
+                child = Node(item, count=1)
+                current_node.children.append(child)
+                self.addHeaderNode(child)
+            # Move to next node
+            current_node = child
 
-        current = child
     
     def find_prefix_paths(self, item):
      paths = []
@@ -175,8 +178,14 @@ transactions=[
 fptree = FPTree()
 min_support = 2
 fptree.create_tree(transactions=transactions, min_support=min_support)
-print(fptree)
-print(fptree.header)
+#print(fptree)
+#print(fptree.header.keys(), fptree.header.values())
+
+for k,v in fptree.header.items():
+   print(k,"=", len(v))
+
+itemsets = fptree.mine_tree()
+print(itemsets)
 
 
 
