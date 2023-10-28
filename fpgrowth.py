@@ -104,11 +104,13 @@ class FPTree:
         paths.append(path)
      return paths
 
-    def build_conditional_tree(self, paths):
+    def build_conditional_tree(self, paths, min_support=0):
      tree = FPTree()
-     for path in paths:
-       tree.add_transaction(path)
-       print(f"Conditional tree path: {path}")
+     tree.create_tree(paths, min_support)
+     print(f"Conditional tree path: {paths}")
+    #  for path in paths:
+    #    tree.add_transaction(path)
+    #    print(f"Conditional tree path: {path}")
      return tree
 
     def is_single_path(self):
@@ -135,7 +137,7 @@ class FPTree:
      # Follow nodes until reach leaf 
      path = []
      node = self.getRoot()
-     while node:
+     while node.children:
         path.append(node.data)
         if len(node.children) > 0:
          node = node.children[0]
@@ -150,22 +152,25 @@ class FPTree:
        print(patterns)
      return patterns
 
-    def mine_tree(self, suffix=[]):
+    def mine_tree(self, suffix=[], min_support=0):
+     print(f"\nnow mining: {self}")
      patterns = []
      for item in self.header:
        prefix_paths = self.find_prefix_paths(item)
        print(f"Prefix paths: {prefix_paths}")
-       cond_tree = self.build_conditional_tree(prefix_paths)
-
+       cond_tree = self.build_conditional_tree(prefix_paths, min_support)
+       print(prefix_paths)
        if cond_tree.is_single_path():  
           print("Single path conditional tree")
           path = cond_tree.get_single_path()
           cond_patterns = self.generate_combinations(path, [item] + suffix)
          
+       elif cond_tree.getRoot().children:
+        print(f"Mining cond tree {cond_tree}")
+        cond_patterns = cond_tree.mine_tree(suffix+ [item])
+        print(f"Conditional tree pattern: {cond_patterns}")
        else:
-          print(f"Mining cond tree {cond_tree}")
-          cond_patterns = cond_tree.mine_tree(suffix+ [item])
-          print(f"Conditional tree pattern: {cond_patterns}")
+          continue
        patterns.extend(cond_patterns)
      return patterns
     
@@ -193,8 +198,8 @@ fptree.create_tree(transactions=transactions, min_support=min_support)
 # for k,v in fptree.header.items():
 #    print(k,"=", len(v))
 
-itemsets = fptree.mine_tree()
-print(itemsets)
+itemsets = fptree.mine_tree(min_support=min_support)
+print(f"itemsets: {itemsets}")
 
 
 
@@ -212,20 +217,20 @@ print(itemsets)
 
 
 
-"""
-Creates a pyplot tree visualization
-"""
-def plot_tree(node, x, y, width, level):
-    if node:
-        plt.text(x, y, f"{node.data}\nCount: {node.count}", ha='center', va='center', bbox=dict(facecolor='white'))
-        if level > 0:
-            for child in node.children:
-                dx = width / len(node.children)
-                x_next = x - (width / 2) + dx / 2 + node.children.index(child) * dx
-                y_next = y - 1.5  # Adjust vertical separation as needed
-                plt.plot([x, x_next], [y, y_next], color='black', lw=2)
-                plot_tree(child, x_next, y_next, dx, level - 1)
-plt.figure(figsize=(8, 4))
-plt.axis('off')
-plot_tree(fptree.getRoot(), x=0, y=0, width=10, level=4)
-plt.show()
+# """
+# Creates a pyplot tree visualization
+# """
+# def plot_tree(node, x, y, width, level):
+#     if node:
+#         plt.text(x, y, f"{node.data}\nCount: {node.count}", ha='center', va='center', bbox=dict(facecolor='white'))
+#         if level > 0:
+#             for child in node.children:
+#                 dx = width / len(node.children)
+#                 x_next = x - (width / 2) + dx / 2 + node.children.index(child) * dx
+#                 y_next = y - 1.5  # Adjust vertical separation as needed
+#                 plt.plot([x, x_next], [y, y_next], color='black', lw=2)
+#                 plot_tree(child, x_next, y_next, dx, level - 1)
+# plt.figure(figsize=(8, 4))
+# plt.axis('off')
+# plot_tree(fptree.getRoot(), x=0, y=0, width=10, level=4)
+# plt.show()
