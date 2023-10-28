@@ -14,7 +14,7 @@ from Node import Node
 
 class FPTree:
     def __init__(self):
-        self.tree_root = Node()
+        self.tree_root = Node(data=None, count=0, children=[], parent=None, header_link=None)
         self.header = {}    # create a dictionary that maps strings to linked lists, and the whole dictionary can be hashed and used as a key in another dict or set
     
     def getRoot(self):
@@ -86,7 +86,7 @@ class FPTree:
                 child.count += 1
             # Else create new child 
             else:
-                child = Node(item, count=1)
+                child = Node(data=item, children=[], count=1, parent=current_node)
                 current_node.children.append(child)
                 self.addHeaderNode(child)
             # Move to next node
@@ -96,12 +96,13 @@ class FPTree:
     def find_prefix_paths(self, item):
      paths = []
      for node in self.header[item]:
+        print(f"Node find Prefix: {node.data}")
         path = []
-        while node and node.parent:
-            path.append(node.data)
-            node = node.parent  
+        while node and node.parent and node.parent.data != None:
+            node = node.parent
+            path.append(node.data)     
         paths.append(path)
-        return paths
+     return paths
 
     def build_conditional_tree(self, paths):
      tree = FPTree()
@@ -119,12 +120,13 @@ class FPTree:
 
     def had_single_path(self, node:Node):
      """Recursively check if node has only one child"""
-     if len(node.children) == 1:
-       return self.had_single_path(node.children[0])
-     elif len(node.children) == 0: 
-       return True
-     else:
-       return False
+     if len(node.children) == 0: 
+      print("Leaf node reached")
+      return True 
+     if len(node.children) > 1:
+      return False
+
+     return self.had_single_path(node.children[0])
      
     def get_single_path(self):
      if not self.is_single_path():
@@ -135,7 +137,8 @@ class FPTree:
      node = self.getRoot()
      while node:
         path.append(node.data)
-        node = node.children[0]
+        if len(node.children) > 0:
+         node = node.children[0]
 
      return path
      
@@ -151,6 +154,7 @@ class FPTree:
      patterns = []
      for item in self.header:
        prefix_paths = self.find_prefix_paths(item)
+       print(f"Prefix paths: {prefix_paths}")
        cond_tree = self.build_conditional_tree(prefix_paths)
 
        if cond_tree.is_single_path():  
@@ -159,8 +163,9 @@ class FPTree:
           cond_patterns = self.generate_combinations(path, [item] + suffix)
          
        else:
-          print("Not single path conditional tree")
-          cond_patterns = cond_tree.mine_tree([item] + suffix)
+          print(f"Mining cond tree {cond_tree}")
+          cond_patterns = cond_tree.mine_tree(suffix+ [item])
+          print(f"Conditional tree pattern: {cond_patterns}")
        patterns.extend(cond_patterns)
      return patterns
     
@@ -172,7 +177,7 @@ class FPTree:
 
 transactions=[
 
-    ["C", "B", "E", "G"],
+  ["C", "B", "E", "G"],
     ["D", "C", "B"],
     ["A", "C", "D", "F"],
     ["D", "E", "F"],
@@ -190,6 +195,7 @@ fptree.create_tree(transactions=transactions, min_support=min_support)
 
 itemsets = fptree.mine_tree()
 print(itemsets)
+
 
 
 
