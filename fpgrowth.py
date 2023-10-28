@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 from collections import Counter
 from Node import Node
+from fetching import fetchData
 
 #create nodes for all of the items that we have in out dataset.
 
@@ -32,7 +33,7 @@ class FPTree:
             elif Node.data in self.header:
                 self.header[Node.data].append(Node)
             
-           # print("self.header: ", self.header[Node.data])
+           # #print("self.header: ", self.header[Node.data])
         return
 
     def create_tree(self, transactions, min_support):
@@ -41,7 +42,7 @@ class FPTree:
         for transaction in transactions:
             transaction = sorted(transaction, key=lambda x: sorted_frequent_items_dict[x], reverse=True) #Sort our transaction list based on support counts
             current = root
-            print(transaction)
+            #print(transaction)
             #adding transaction to tree
             for item in transaction:
                 if sorted_frequent_items_dict[item] >= min_support: # min support threshold
@@ -96,7 +97,7 @@ class FPTree:
     def find_prefix_paths(self, item):
      paths = []
      for node in self.header[item]:
-        print(f"Node find Prefix: {node.data}")
+        #print(f"Node find Prefix: {node.data}")
         path = []
         while node and node.parent and node.parent.data != None:
             node = node.parent
@@ -107,10 +108,10 @@ class FPTree:
     def build_conditional_tree(self, paths, min_support=0):
      tree = FPTree()
      tree.create_tree(paths, min_support)
-     print(f"Conditional tree path: {paths}")
+     #print(f"Conditional tree path: {paths}")
     #  for path in paths:
     #    tree.add_transaction(path)
-    #    print(f"Conditional tree path: {path}")
+    #    #print(f"Conditional tree path: {path}")
      return tree
 
     def is_single_path(self):
@@ -123,7 +124,7 @@ class FPTree:
     def had_single_path(self, node:Node):
      """Recursively check if node has only one child"""
      if len(node.children) == 0: 
-      print("Leaf node reached")
+      #print("Leaf node reached")
       return True 
      if len(node.children) > 1:
       return False
@@ -149,26 +150,26 @@ class FPTree:
      for i in range(len(path)):
        pattern = path[i:] + suffix
        patterns.append(pattern)
-       print(patterns)
+       #print(patterns)
      return patterns
 
     def mine_tree(self, suffix=[], min_support=0):
-     print(f"\nnow mining: {self}")
+     #print(f"\nnow mining: {self}")
      patterns = []
      for item in self.header:
        prefix_paths = self.find_prefix_paths(item)
-       print(f"Prefix paths: {prefix_paths}")
+       #print(f"Prefix paths: {prefix_paths}")
        cond_tree = self.build_conditional_tree(prefix_paths, min_support)
-       print(prefix_paths)
+       #print(prefix_paths)
        if cond_tree.is_single_path():  
-          print("Single path conditional tree")
+          #print("Single path conditional tree")
           path = cond_tree.get_single_path()
           cond_patterns = self.generate_combinations(path, [item] + suffix)
          
        elif cond_tree.getRoot().children:
-        print(f"Mining cond tree {cond_tree}")
+        #print(f"Mining cond tree {cond_tree}")
         cond_patterns = cond_tree.mine_tree(suffix+ [item])
-        print(f"Conditional tree pattern: {cond_patterns}")
+        #print(f"Conditional tree pattern: {cond_patterns}")
        else:
           continue
        patterns.extend(cond_patterns)
@@ -188,21 +189,29 @@ transactions=[
     ["D", "E", "F"],
     ["G", "C", "E", "F"],
 ]
+id = [2, 73, 186, 545, 1, 14, 27, 579, 225, 878]
+for i in id:
+    print(f"Mining database {i}...")
+    transactions=fetchData(i)
+    transactions = transactions[:min(500, len(transactions))]   #500 or less
 
-fptree = FPTree()
-min_support = 2
-fptree.create_tree(transactions=transactions, min_support=min_support)
-#print(fptree)
-#print(fptree.header.keys(), fptree.header.values())
+    fptree = FPTree()
+    min_support = 200
+    fptree.create_tree(transactions=transactions, min_support=min_support)
+    itemsets = fptree.mine_tree(min_support=min_support)
+    # for i in itemsets:
+    #     #print(f"{i}")
 
-# for k,v in fptree.header.items():
-#    print(k,"=", len(v))
+    # Open a txt file for writing
+    with open(f'itemsets{i}.txt', 'w') as f:
 
-itemsets = fptree.mine_tree(min_support=min_support)
-print(f"itemsets: {itemsets}")
-
-
-
+        # Iterate through rows
+        for row in itemsets:
+            # Convert each row to a string with spaces
+            row_str = ' '.join(str(x) for x in row)
+            
+            # Write the row to the file 
+            f.write(row_str + '\n')
 
 
 

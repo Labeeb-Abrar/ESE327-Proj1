@@ -4,10 +4,6 @@ def fetchData(id):
     # fetch dataset 
     evaluation = fetch_ucirepo(id=id)
     x = evaluation.data.features.values.tolist()
-    y = evaluation.data.targets.values.tolist()
+    # y = evaluation.data.targets.values.tolist()
     
-    print(x)
-    print(y)
-    pass
-
-fetchData(19)
+    return x
